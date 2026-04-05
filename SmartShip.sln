@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdminService.API", "AdminSe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartShip.Gateway", "SmartShip.Gateway\SmartShip.Gateway.csproj", "{AA6B77C2-7D1D-4A22-A56C-E5A326AD97F5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NotificationService.API", "NotificationService.API\NotificationService.API.csproj", "{C3D7E5F2-8A91-4B3C-9E6D-1F2A3B4C5D6E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -48,5 +50,9 @@ Global
 		{AA6B77C2-7D1D-4A22-A56C-E5A326AD97F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AA6B77C2-7D1D-4A22-A56C-E5A326AD97F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AA6B77C2-7D1D-4A22-A56C-E5A326AD97F5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C3D7E5F2-8A91-4B3C-9E6D-1F2A3B4C5D6E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C3D7E5F2-8A91-4B3C-9E6D-1F2A3B4C5D6E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C3D7E5F2-8A91-4B3C-9E6D-1F2A3B4C5D6E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C3D7E5F2-8A91-4B3C-9E6D-1F2A3B4C5D6E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

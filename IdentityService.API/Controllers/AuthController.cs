@@ -16,9 +16,9 @@ public class AuthController : ControllerBase
         _authService = authService;
     }
 
-    /// <summary>Register a new user</summary>
+    /// <summary>Register a new user (publishes OTP to queue)</summary>
     [HttpPost("register")]
-    [ProducesResponseType(typeof(ApiResponse<AuthResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<RegisterResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
@@ -26,7 +26,20 @@ public class AuthController : ControllerBase
         if (result == null)
             return BadRequest(ApiResponse<object>.FailureResponse("Email already registered."));
 
-        return Ok(ApiResponse<AuthResponse>.SuccessResponse(result, "User registered successfully."));
+        return Ok(ApiResponse<RegisterResponse>.SuccessResponse(result, result.Message));
+    }
+
+    /// <summary>Verify OTP and complete registration</summary>
+    [HttpPost("verify-otp")]
+    [ProducesResponseType(typeof(ApiResponse<AuthResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpRequest request)
+    {
+        var result = await _authService.VerifyOtpAsync(request);
+        if (result == null)
+            return BadRequest(ApiResponse<object>.FailureResponse("Invalid or expired OTP."));
+
+        return Ok(ApiResponse<AuthResponse>.SuccessResponse(result, "Email verified successfully. You are now logged in."));
     }
 
     /// <summary>Login and get JWT token</summary>
@@ -37,7 +50,7 @@ public class AuthController : ControllerBase
     {
         var result = await _authService.LoginAsync(request);
         if (result == null)
-            return Unauthorized(ApiResponse<object>.FailureResponse("Invalid email or password."));
+            return Unauthorized(ApiResponse<object>.FailureResponse("Invalid credentials or account not verified."));
 
         return Ok(ApiResponse<AuthResponse>.SuccessResponse(result, "Login successful."));
     }

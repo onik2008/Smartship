@@ -33,10 +33,27 @@ public class LoginRequest
     public string Password { get; set; } = string.Empty;
 }
 
+public class VerifyOtpRequest
+{
+    [Required]
+    [EmailAddress]
+    public string Email { get; set; } = string.Empty;
+
+    [Required]
+    [StringLength(6, MinimumLength = 6)]
+    public string OtpCode { get; set; } = string.Empty;
+}
+
 public class AuthResponse
 {
     public string Token { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string Role { get; set; } = string.Empty;
     public DateTime ExpiresAt { get; set; }
+}
+
+public class RegisterResponse
+{
+    public string Email { get; set; } = string.Empty;
+    public string Message { get; set; } = string.Empty;
 }

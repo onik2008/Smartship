@@ -1,5 +1,6 @@
 using System.Text;
 using IdentityService.API.Data;
+using IdentityService.API.Messaging;
 using IdentityService.API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -52,6 +53,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddAuthorization();
+builder.Services.AddHttpClient();
+builder.Services.AddSingleton<IRabbitMqPublisher, RabbitMqPublisher>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 var app = builder.Build();
