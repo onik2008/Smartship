@@ -30,6 +30,7 @@ builder.Services.AddSwaggerGen(c =>
             Array.Empty<string>()
         }
     });
+    c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "ShipmentService.API.xml"));
 });
 
 builder.Services.AddDbContext<AppDbContext>(options =>
