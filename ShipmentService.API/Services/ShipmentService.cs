@@ -45,7 +45,7 @@ public class ShipmentService : IShipmentService
     }
 
     private static string GenerateTrackingNumber()
-        => $"SS{DateTime.UtcNow:yyyyMMddHHmmss}{Random.Shared.Next(1000, 9999)}";
+        => $"SS{Guid.NewGuid():N}".ToUpper()[..20];
 
     private static ShipmentResponse MapToResponse(Shipment s) => new()
     {
