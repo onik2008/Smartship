@@ -29,6 +29,8 @@ public class ExceptionHandlingMiddleware
     private async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
         var traceId = context.TraceIdentifier;
+        var safePath = SanitizeForLog(context.Request.Path);
+        var safeTraceId = SanitizeForLog(traceId);
 
         int statusCode;
         string message;
@@ -39,7 +41,7 @@ public class ExceptionHandlingMiddleware
             case TimeoutException:
                 _logger.LogError(exception,
                     "Gateway request timed out. TraceId: {TraceId}, Path: {Path}",
-                    traceId, context.Request.Path);
+                    safeTraceId, safePath);
                 statusCode = (int)HttpStatusCode.GatewayTimeout;
                 message = "The request timed out. Please try again.";
                 code = "GATEWAY_TIMEOUT";
@@ -48,8 +50,8 @@ public class ExceptionHandlingMiddleware
             case OperationCanceledException:
                 _logger.LogWarning(
                     "Gateway request cancelled. TraceId: {TraceId}, Path: {Path}",
-                    traceId, context.Request.Path);
-                statusCode = 499;
+                    safeTraceId, safePath);
+                statusCode = (int)HttpStatusCode.BadRequest;
                 message = "The request was cancelled.";
                 code = "REQUEST_CANCELLED";
                 break;
@@ -57,7 +59,7 @@ public class ExceptionHandlingMiddleware
             default:
                 _logger.LogError(exception,
                     "Unhandled gateway exception. TraceId: {TraceId}, Path: {Path}",
-                    traceId, context.Request.Path);
+                    safeTraceId, safePath);
                 statusCode = (int)HttpStatusCode.InternalServerError;
                 message = "An unexpected error occurred at the gateway.";
                 code = "GATEWAY_ERROR";
@@ -82,4 +84,8 @@ public class ExceptionHandlingMiddleware
         var json = JsonSerializer.Serialize(errorResponse, options);
         await context.Response.WriteAsync(json);
     }
+
+    private static string SanitizeForLog(string? value) =>
+        value?.Replace("\r", "_", StringComparison.Ordinal)
+              .Replace("\n", "_", StringComparison.Ordinal) ?? string.Empty;
 }

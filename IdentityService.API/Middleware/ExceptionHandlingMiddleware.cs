@@ -32,6 +32,8 @@ public class ExceptionHandlingMiddleware
     private async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
         var traceId = context.TraceIdentifier;
+        var safePath = SanitizeForLog(context.Request.Path);
+        var safeTraceId = SanitizeForLog(traceId);
 
         ApiErrorResponse errorResponse;
 
@@ -40,7 +42,7 @@ public class ExceptionHandlingMiddleware
             case ValidationException validationEx:
                 _logger.LogWarning(exception,
                     "Validation error. TraceId: {TraceId}, Path: {Path}",
-                    traceId, context.Request.Path);
+                    safeTraceId, safePath);
                 errorResponse = ApiErrorResponse.Create(
                     validationEx.StatusCode,
                     validationEx.Message,
@@ -52,7 +54,7 @@ public class ExceptionHandlingMiddleware
             case UnauthorizedException unauthorizedEx:
                 _logger.LogWarning(exception,
                     "Unauthorized access. TraceId: {TraceId}, Path: {Path}",
-                    traceId, context.Request.Path);
+                    safeTraceId, safePath);
                 errorResponse = ApiErrorResponse.Create(
                     unauthorizedEx.StatusCode,
                     unauthorizedEx.Message,
@@ -63,7 +65,7 @@ public class ExceptionHandlingMiddleware
             case ForbiddenException forbiddenEx:
                 _logger.LogWarning(exception,
                     "Forbidden access. TraceId: {TraceId}, Path: {Path}",
-                    traceId, context.Request.Path);
+                    safeTraceId, safePath);
                 errorResponse = ApiErrorResponse.Create(
                     forbiddenEx.StatusCode,
                     forbiddenEx.Message,
@@ -74,7 +76,7 @@ public class ExceptionHandlingMiddleware
             case NotFoundException notFoundEx:
                 _logger.LogInformation(exception,
                     "Resource not found. TraceId: {TraceId}, Path: {Path}",
-                    traceId, context.Request.Path);
+                    safeTraceId, safePath);
                 errorResponse = ApiErrorResponse.Create(
                     notFoundEx.StatusCode,
                     notFoundEx.Message,
@@ -85,7 +87,7 @@ public class ExceptionHandlingMiddleware
             case ConflictException conflictEx:
                 _logger.LogWarning(exception,
                     "Conflict error. TraceId: {TraceId}, Path: {Path}",
-                    traceId, context.Request.Path);
+                    safeTraceId, safePath);
                 errorResponse = ApiErrorResponse.Create(
                     conflictEx.StatusCode,
                     conflictEx.Message,
@@ -96,7 +98,7 @@ public class ExceptionHandlingMiddleware
             case BusinessException businessEx:
                 _logger.LogWarning(exception,
                     "Business rule violation. TraceId: {TraceId}, Path: {Path}",
-                    traceId, context.Request.Path);
+                    safeTraceId, safePath);
                 errorResponse = ApiErrorResponse.Create(
                     businessEx.StatusCode,
                     businessEx.Message,
@@ -107,7 +109,7 @@ public class ExceptionHandlingMiddleware
             case ServiceUnavailableException serviceEx:
                 _logger.LogError(exception,
                     "Service unavailable. TraceId: {TraceId}, Path: {Path}",
-                    traceId, context.Request.Path);
+                    safeTraceId, safePath);
                 errorResponse = ApiErrorResponse.Create(
                     serviceEx.StatusCode,
                     serviceEx.Message,
@@ -118,7 +120,7 @@ public class ExceptionHandlingMiddleware
             case ExternalServiceException externalEx:
                 _logger.LogError(exception,
                     "External service error: {ServiceName}. TraceId: {TraceId}, Path: {Path}",
-                    externalEx.ServiceName, traceId, context.Request.Path);
+                    externalEx.ServiceName, safeTraceId, safePath);
                 errorResponse = ApiErrorResponse.Create(
                     externalEx.StatusCode,
                     externalEx.Message,
@@ -129,7 +131,7 @@ public class ExceptionHandlingMiddleware
             case DataAccessException dataEx:
                 _logger.LogError(exception,
                     "Data access error. TraceId: {TraceId}, Path: {Path}",
-                    traceId, context.Request.Path);
+                    safeTraceId, safePath);
                 errorResponse = ApiErrorResponse.Create(
                     dataEx.StatusCode,
                     "A data error occurred. Please try again later.",
@@ -140,7 +142,7 @@ public class ExceptionHandlingMiddleware
             case MessagingException messagingEx:
                 _logger.LogError(exception,
                     "Messaging error. TraceId: {TraceId}, Path: {Path}",
-                    traceId, context.Request.Path);
+                    safeTraceId, safePath);
                 errorResponse = ApiErrorResponse.Create(
                     messagingEx.StatusCode,
                     "A messaging error occurred. Please try again later.",
@@ -151,7 +153,7 @@ public class ExceptionHandlingMiddleware
             case AppException appEx:
                 _logger.LogError(exception,
                     "Application error. TraceId: {TraceId}, Path: {Path}",
-                    traceId, context.Request.Path);
+                    safeTraceId, safePath);
                 errorResponse = ApiErrorResponse.Create(
                     appEx.StatusCode,
                     appEx.Message,
@@ -162,7 +164,7 @@ public class ExceptionHandlingMiddleware
             case ArgumentNullException argNullEx:
                 _logger.LogError(exception,
                     "Null argument error: {ParamName}. TraceId: {TraceId}",
-                    argNullEx.ParamName, traceId);
+                    argNullEx.ParamName, safeTraceId);
                 errorResponse = ApiErrorResponse.Create(
                     (int)HttpStatusCode.BadRequest,
                     "A required value was missing.",
@@ -173,7 +175,7 @@ public class ExceptionHandlingMiddleware
             case ArgumentException argEx:
                 _logger.LogError(exception,
                     "Argument error: {ParamName}. TraceId: {TraceId}",
-                    argEx.ParamName, traceId);
+                    argEx.ParamName, safeTraceId);
                 errorResponse = ApiErrorResponse.Create(
                     (int)HttpStatusCode.BadRequest,
                     "An invalid argument was provided.",
@@ -184,7 +186,7 @@ public class ExceptionHandlingMiddleware
             case TimeoutException:
                 _logger.LogError(exception,
                     "Request timed out. TraceId: {TraceId}, Path: {Path}",
-                    traceId, context.Request.Path);
+                    safeTraceId, safePath);
                 errorResponse = ApiErrorResponse.Create(
                     (int)HttpStatusCode.RequestTimeout,
                     "The request timed out. Please try again.",
@@ -195,9 +197,9 @@ public class ExceptionHandlingMiddleware
             case OperationCanceledException:
                 _logger.LogWarning(
                     "Request was cancelled. TraceId: {TraceId}, Path: {Path}",
-                    traceId, context.Request.Path);
+                    safeTraceId, safePath);
                 errorResponse = ApiErrorResponse.Create(
-                    499,
+                    (int)HttpStatusCode.BadRequest,
                     "The request was cancelled.",
                     "REQUEST_CANCELLED",
                     traceId: traceId);
@@ -206,7 +208,7 @@ public class ExceptionHandlingMiddleware
             default:
                 _logger.LogError(exception,
                     "Unhandled exception. TraceId: {TraceId}, Path: {Path}",
-                    traceId, context.Request.Path);
+                    safeTraceId, safePath);
                 errorResponse = ApiErrorResponse.Create(
                     (int)HttpStatusCode.InternalServerError,
                     "An unexpected error occurred. Please contact support.",
@@ -223,4 +225,8 @@ public class ExceptionHandlingMiddleware
         var json = JsonSerializer.Serialize(errorResponse, options);
         await context.Response.WriteAsync(json);
     }
+
+    private static string SanitizeForLog(string? value) =>
+        value?.Replace("\r", "_", StringComparison.Ordinal)
+              .Replace("\n", "_", StringComparison.Ordinal) ?? string.Empty;
 }

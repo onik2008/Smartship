@@ -7,7 +7,7 @@ namespace ShipmentService.API.Controllers;
 [ApiController]
 public abstract class BaseController : ControllerBase
 {
-    protected IActionResult HandleException(Exception ex, ILogger logger)
+    protected IActionResult HandleException(Exception ex)
     {
         var traceId = HttpContext.TraceIdentifier;
 
