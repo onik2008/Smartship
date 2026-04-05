@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using SmartShip.Shared.Utils;
 
 namespace SmartShip.Gateway.Middleware;
 
@@ -29,8 +30,8 @@ public class ExceptionHandlingMiddleware
     private async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
         var traceId = context.TraceIdentifier;
-        var safePath = SanitizeForLog(context.Request.Path);
-        var safeTraceId = SanitizeForLog(traceId);
+        var safePath = LogSanitizer.Sanitize(context.Request.Path);
+        var safeTraceId = LogSanitizer.Sanitize(traceId);
 
         int statusCode;
         string message;
@@ -84,8 +85,4 @@ public class ExceptionHandlingMiddleware
         var json = JsonSerializer.Serialize(errorResponse, options);
         await context.Response.WriteAsync(json);
     }
-
-    private static string SanitizeForLog(string? value) =>
-        value?.Replace("\r", "_", StringComparison.Ordinal)
-              .Replace("\n", "_", StringComparison.Ordinal) ?? string.Empty;
 }
