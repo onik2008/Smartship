@@ -44,6 +44,7 @@ builder.Services.AddSwaggerGen(c =>
             Array.Empty<string>()
         }
     });
+    c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "AdminService.API.xml"));
 });
 
 builder.Services.AddDbContext<AppDbContext>(options =>

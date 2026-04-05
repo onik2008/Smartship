@@ -45,6 +45,7 @@ builder.Services.AddSwaggerGen(c =>
             Array.Empty<string>()
         }
     });
+    c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "IdentityService.API.xml"));
 });
 
 builder.Services.AddDbContext<AppDbContext>(options =>

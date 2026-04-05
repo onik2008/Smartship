@@ -31,6 +31,7 @@ builder.Services.AddSwaggerGen(c =>
         Version = "v1",
         Description = "Handles email notifications and OTP verification via RabbitMQ"
     });
+    c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "NotificationService.API.xml"));
 });
 
 builder.Services.AddDbContext<AppDbContext>(options =>
