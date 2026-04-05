@@ -8,18 +8,29 @@ namespace IdentityService.API.Messaging;
 public interface IRabbitMqPublisher
 {
     Task PublishOtpRequestAsync(OtpRequestMessage message);
+    Task InitializeAsync();
 }
 
-public class RabbitMqPublisher : IRabbitMqPublisher, IDisposable
+public class RabbitMqPublisher : IRabbitMqPublisher, IAsyncDisposable
 {
-    private readonly IConnection _connection;
-    private readonly IChannel _channel;
+    private readonly IConfiguration _configuration;
     private readonly ILogger<RabbitMqPublisher> _logger;
+    private IConnection? _connection;
+    private IChannel? _channel;
+    private bool _initialized;
 
     public RabbitMqPublisher(IConfiguration configuration, ILogger<RabbitMqPublisher> logger)
     {
+        _configuration = configuration;
         _logger = logger;
-        var rabbitConfig = configuration.GetSection("RabbitMQ");
+    }
+
+    public async Task InitializeAsync()
+    {
+        if (_initialized)
+            return;
+
+        var rabbitConfig = _configuration.GetSection("RabbitMQ");
 
         var factory = new ConnectionFactory
         {
@@ -32,29 +43,33 @@ public class RabbitMqPublisher : IRabbitMqPublisher, IDisposable
 
         try
         {
-            _connection = factory.CreateConnectionAsync().GetAwaiter().GetResult();
-            _channel = _connection.CreateChannelAsync().GetAwaiter().GetResult();
+            _connection = await factory.CreateConnectionAsync();
+            _channel = await _connection.CreateChannelAsync();
 
-            _channel.QueueDeclareAsync(
+            await _channel.QueueDeclareAsync(
                 queue: SmartShip.Shared.Constants.QueueNames.OtpQueue,
                 durable: true,
                 exclusive: false,
                 autoDelete: false,
-                arguments: null).GetAwaiter().GetResult();
+                arguments: null);
+
+            _initialized = true;
+            _logger.LogInformation("RabbitMQ publisher initialized.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to connect to RabbitMQ. OTP messages will not be published.");
-            _connection = null!;
-            _channel = null!;
         }
     }
 
     public async Task PublishOtpRequestAsync(OtpRequestMessage message)
     {
+        if (!_initialized)
+            await InitializeAsync();
+
         if (_channel == null)
         {
-            _logger.LogWarning("RabbitMQ channel is not available. Skipping OTP publish for {Email}.", message.Email);
+            _logger.LogWarning("RabbitMQ channel is not available. Skipping OTP publish.");
             return;
         }
 
@@ -72,17 +87,19 @@ public class RabbitMqPublisher : IRabbitMqPublisher, IDisposable
                 basicProperties: props,
                 body: body);
 
-            _logger.LogInformation("OTP request published for {Email}", message.Email);
+            _logger.LogInformation("OTP request published successfully.");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to publish OTP request for {Email}", message.Email);
+            _logger.LogError(ex, "Failed to publish OTP request.");
         }
     }
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
-        _channel?.CloseAsync().GetAwaiter().GetResult();
-        _connection?.CloseAsync().GetAwaiter().GetResult();
+        if (_channel != null)
+            await _channel.CloseAsync();
+        if (_connection != null)
+            await _connection.CloseAsync();
     }
 }

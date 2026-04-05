@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using Microsoft.EntityFrameworkCore;
 using NotificationService.API.Data;
 using NotificationService.API.DTOs;
 using NotificationService.API.Entities;
@@ -68,13 +70,13 @@ public class NotificationService : INotificationService
 
             notification.Status = NotificationStatus.Sent;
             notification.SentAt = DateTime.UtcNow;
-            _logger.LogInformation("OTP email sent to {Email}", message.Email);
+            _logger.LogInformation("OTP email sent to recipient.");
         }
         catch (Exception ex)
         {
             notification.Status = NotificationStatus.Failed;
             notification.ErrorMessage = ex.Message;
-            _logger.LogError(ex, "Failed to send OTP email to {Email}", message.Email);
+            _logger.LogError(ex, "Failed to send OTP email.");
         }
 
         await _context.SaveChangesAsync();
@@ -104,7 +106,7 @@ public class NotificationService : INotificationService
         {
             notification.Status = NotificationStatus.Failed;
             notification.ErrorMessage = ex.Message;
-            _logger.LogError(ex, "Failed to send email to {Email}", message.To);
+            _logger.LogError(ex, "Failed to send email.");
         }
 
         await _context.SaveChangesAsync();
@@ -112,14 +114,14 @@ public class NotificationService : INotificationService
 
     public async Task<bool> VerifyOtpAsync(Guid userId, string otpCode)
     {
-        var notification = _context.Notifications
+        var notification = await _context.Notifications
             .Where(n => n.UserId == userId
                         && n.Type == NotificationType.OTP
                         && n.OtpCode == otpCode
                         && n.Status == NotificationStatus.Sent
                         && n.ExpiryTime > DateTime.UtcNow)
             .OrderByDescending(n => n.CreatedAt)
-            .FirstOrDefault();
+            .FirstOrDefaultAsync();
 
         if (notification == null)
             return false;
@@ -158,18 +160,17 @@ public class NotificationService : INotificationService
             notification.Status = NotificationStatus.Failed;
             notification.ErrorMessage = ex.Message;
             await _context.SaveChangesAsync();
-            _logger.LogError(ex, "Failed to send custom email to {Email}", request.To);
+            _logger.LogError(ex, "Failed to send custom email.");
             return false;
         }
     }
 
     private static string GenerateOtp(int length)
     {
-        var random = new Random();
-        var otp = string.Empty;
+        var digits = new char[length];
         for (int i = 0; i < length; i++)
-            otp += random.Next(0, 10).ToString();
-        return otp;
+            digits[i] = (char)('0' + RandomNumberGenerator.GetInt32(0, 10));
+        return new string(digits);
     }
 
     private static string BuildOtpEmailBody(string firstName, string otpCode, int expiryMinutes) =>

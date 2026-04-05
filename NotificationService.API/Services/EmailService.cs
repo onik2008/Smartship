@@ -52,6 +52,6 @@ public class EmailService : IEmailService
         await smtp.SendAsync(message);
         await smtp.DisconnectAsync(true);
 
-        _logger.LogInformation("Email sent to {Email} with subject '{Subject}'", toEmail, subject);
+        _logger.LogInformation("Email sent successfully with subject '{Subject}'", subject);
     }
 }

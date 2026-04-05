@@ -16,17 +16,20 @@ public class AuthService : IAuthService
     private readonly AppDbContext _context;
     private readonly IConfiguration _configuration;
     private readonly IRabbitMqPublisher _publisher;
+    private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<AuthService> _logger;
 
     public AuthService(
         AppDbContext context,
         IConfiguration configuration,
         IRabbitMqPublisher publisher,
+        IHttpClientFactory httpClientFactory,
         ILogger<AuthService> logger)
     {
         _context = context;
         _configuration = configuration;
         _publisher = publisher;
+        _httpClientFactory = httpClientFactory;
         _logger = logger;
     }
 
@@ -59,7 +62,7 @@ public class AuthService : IAuthService
         };
 
         await _publisher.PublishOtpRequestAsync(otpMessage);
-        _logger.LogInformation("Registration initiated for {Email}. OTP request published.", user.Email);
+        _logger.LogInformation("Registration initiated. OTP request published.");
 
         return new RegisterResponse
         {
@@ -77,9 +80,8 @@ public class AuthService : IAuthService
         if (user.IsVerified)
             return GenerateToken(user);
 
-        // Delegate OTP validation to NotificationService via HTTP
         var notificationBaseUrl = _configuration["NotificationService:BaseUrl"] ?? "http://localhost:5005";
-        using var httpClient = new HttpClient();
+        var httpClient = _httpClientFactory.CreateClient();
         httpClient.BaseAddress = new Uri(notificationBaseUrl);
 
         var verifyPayload = new { userId = user.Id, otpCode = request.OtpCode };
@@ -91,7 +93,7 @@ public class AuthService : IAuthService
         user.IsVerified = true;
         await _context.SaveChangesAsync();
 
-        _logger.LogInformation("User {Email} verified successfully.", user.Email);
+        _logger.LogInformation("User verified successfully.");
         return GenerateToken(user);
     }
 
