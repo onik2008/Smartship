@@ -2,9 +2,23 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using NotificationService.API.Data;
 using NotificationService.API.Messaging;
+using NotificationService.API.Middleware;
 using NotificationService.API.Services;
+using Serilog;
+
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(new ConfigurationBuilder()
+        .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+        .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", optional: true)
+        .Build())
+    .Enrich.FromLogContext()
+    .Enrich.WithProperty("Service", "NotificationService")
+    .WriteTo.Console()
+    .WriteTo.File("logs/notification-service-.log", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 7)
+    .CreateLogger();
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Host.UseSerilog();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -27,6 +41,8 @@ builder.Services.AddScoped<INotificationService, NotificationService.API.Service
 builder.Services.AddHostedService<RabbitMqConsumerService>();
 
 var app = builder.Build();
+
+app.UseExceptionHandlingMiddleware();
 
 app.UseSwagger();
 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "NotificationService API v1"));

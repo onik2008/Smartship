@@ -8,6 +8,12 @@
 
   <ItemGroup>
     <PackageReference Include="Ocelot" Version="23.4.2" />
+    <PackageReference Include="Serilog.AspNetCore" Version="8.0.3" />
+    <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SmartShip.Shared\SmartShip.Shared.csproj" />
   </ItemGroup>
 
 </Project>
