@@ -1,12 +1,26 @@
 using System.Text;
 using AdminService.API.Data;
+using AdminService.API.Middleware;
 using AdminService.API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Serilog;
+
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(new ConfigurationBuilder()
+        .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+        .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", optional: true)
+        .Build())
+    .Enrich.FromLogContext()
+    .Enrich.WithProperty("Service", "AdminService")
+    .WriteTo.Console()
+    .WriteTo.File("logs/admin-service-.log", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 7)
+    .CreateLogger();
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Host.UseSerilog();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -55,6 +69,8 @@ builder.Services.AddAuthorization();
 builder.Services.AddScoped<IAdminService, AdminService.API.Services.AdminService>();
 
 var app = builder.Build();
+
+app.UseExceptionHandlingMiddleware();
 
 app.UseSwagger();
 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "AdminService API v1"));
