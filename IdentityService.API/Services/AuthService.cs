@@ -4,8 +4,10 @@ using System.Text;
 using IdentityService.API.Data;
 using IdentityService.API.DTOs;
 using IdentityService.API.Entities;
+using IdentityService.API.Messaging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using SmartShip.Shared.Models;
 
 namespace IdentityService.API.Services;
 
@@ -13,14 +15,25 @@ public class AuthService : IAuthService
 {
     private readonly AppDbContext _context;
     private readonly IConfiguration _configuration;
+    private readonly IRabbitMqPublisher _publisher;
+    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly ILogger<AuthService> _logger;
 
-    public AuthService(AppDbContext context, IConfiguration configuration)
+    public AuthService(
+        AppDbContext context,
+        IConfiguration configuration,
+        IRabbitMqPublisher publisher,
+        IHttpClientFactory httpClientFactory,
+        ILogger<AuthService> logger)
     {
         _context = context;
         _configuration = configuration;
+        _publisher = publisher;
+        _httpClientFactory = httpClientFactory;
+        _logger = logger;
     }
 
-    public async Task<AuthResponse?> RegisterAsync(RegisterRequest request)
+    public async Task<RegisterResponse?> RegisterAsync(RegisterRequest request)
     {
         if (await _context.Users.AnyAsync(u => u.Email == request.Email))
             return null;
@@ -32,12 +45,55 @@ public class AuthService : IAuthService
             Email = request.Email,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
             Role = request.Role == "Admin" ? "Admin" : "Customer",
+            IsVerified = false,
             CreatedAt = DateTime.UtcNow
         };
 
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
 
+        var otpMessage = new OtpRequestMessage
+        {
+            UserId = user.Id,
+            Email = user.Email,
+            FirstName = user.FirstName,
+            RequestId = Guid.NewGuid(),
+            Timestamp = DateTime.UtcNow
+        };
+
+        await _publisher.PublishOtpRequestAsync(otpMessage);
+        _logger.LogInformation("Registration initiated. OTP request published.");
+
+        return new RegisterResponse
+        {
+            Email = user.Email,
+            Message = "Registration initiated. Please check your email for OTP verification."
+        };
+    }
+
+    public async Task<AuthResponse?> VerifyOtpAsync(VerifyOtpRequest request)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+        if (user == null)
+            return null;
+
+        if (user.IsVerified)
+            return GenerateToken(user);
+
+        var notificationBaseUrl = _configuration["NotificationService:BaseUrl"] ?? "http://localhost:5005";
+        var httpClient = _httpClientFactory.CreateClient();
+        httpClient.BaseAddress = new Uri(notificationBaseUrl);
+
+        var verifyPayload = new { userId = user.Id, otpCode = request.OtpCode };
+        var response = await httpClient.PostAsJsonAsync("/api/notifications/verify-otp", verifyPayload);
+
+        if (!response.IsSuccessStatusCode)
+            return null;
+
+        user.IsVerified = true;
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation("User verified successfully.");
         return GenerateToken(user);
     }
 
@@ -45,6 +101,9 @@ public class AuthService : IAuthService
     {
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
         if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+            return null;
+
+        if (!user.IsVerified)
             return null;
 
         return GenerateToken(user);

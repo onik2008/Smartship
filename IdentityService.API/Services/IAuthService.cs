@@ -4,6 +4,7 @@ namespace IdentityService.API.Services;
 
 public interface IAuthService
 {
-    Task<AuthResponse?> RegisterAsync(RegisterRequest request);
+    Task<RegisterResponse?> RegisterAsync(RegisterRequest request);
+    Task<AuthResponse?> VerifyOtpAsync(VerifyOtpRequest request);
     Task<AuthResponse?> LoginAsync(LoginRequest request);
 }
