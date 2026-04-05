@@ -35,7 +35,7 @@ public class RabbitMqPublisher : IRabbitMqPublisher, IAsyncDisposable
         var factory = new ConnectionFactory
         {
             HostName = rabbitConfig["Host"] ?? "localhost",
-            Port = int.Parse(rabbitConfig["Port"] ?? "5672"),
+            Port = int.TryParse(rabbitConfig["Port"], out var port) ? port : 5672,
             UserName = rabbitConfig["Username"] ?? "guest",
             Password = rabbitConfig["Password"] ?? "guest",
             VirtualHost = rabbitConfig["VirtualHost"] ?? "/"

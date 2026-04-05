@@ -42,7 +42,7 @@ public class EmailService : IEmailService
         using var smtp = new SmtpClient();
         await smtp.ConnectAsync(
             emailSettings["SmtpHost"] ?? "smtp.gmail.com",
-            int.Parse(emailSettings["SmtpPort"] ?? "587"),
+            int.TryParse(emailSettings["SmtpPort"], out var smtpPort) ? smtpPort : 587,
             SecureSocketOptions.StartTls);
 
         await smtp.AuthenticateAsync(
@@ -52,6 +52,6 @@ public class EmailService : IEmailService
         await smtp.SendAsync(message);
         await smtp.DisconnectAsync(true);
 
-        _logger.LogInformation("Email sent successfully with subject '{Subject}'", subject);
+        _logger.LogInformation("Email sent successfully.");
     }
 }

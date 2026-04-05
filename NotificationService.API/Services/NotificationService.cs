@@ -38,8 +38,8 @@ public class NotificationService : INotificationService
     public async Task ProcessOtpRequestAsync(OtpRequestMessage message)
     {
         var otpConfig = _configuration.GetSection("Otp");
-        int otpLength = int.Parse(otpConfig["Length"] ?? "6");
-        int expiryMinutes = int.Parse(otpConfig["ExpiryMinutes"] ?? "15");
+        int otpLength = int.TryParse(otpConfig["Length"], out var len) ? len : 6;
+        int expiryMinutes = int.TryParse(otpConfig["ExpiryMinutes"], out var exp) ? exp : 15;
 
         var otpCode = GenerateOtp(otpLength);
 
