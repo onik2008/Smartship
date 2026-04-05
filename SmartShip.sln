@@ -1,0 +1,52 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartShip.Shared", "SmartShip.Shared\SmartShip.Shared.csproj", "{7B394866-708F-4C73-924C-B5A9513D92A9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IdentityService.API", "IdentityService.API\IdentityService.API.csproj", "{0081DD81-2F11-474E-9D0B-5777EE30D393}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShipmentService.API", "ShipmentService.API\ShipmentService.API.csproj", "{BFF01BEE-DF34-47CC-9C65-1282BAA60535}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrackingService.API", "TrackingService.API\TrackingService.API.csproj", "{44623B09-BA13-4A59-BF7D-3B851D8B1F81}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdminService.API", "AdminService.API\AdminService.API.csproj", "{F5226D04-7E10-401D-8704-B54DB57AB13C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartShip.Gateway", "SmartShip.Gateway\SmartShip.Gateway.csproj", "{AA6B77C2-7D1D-4A22-A56C-E5A326AD97F5}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7B394866-708F-4C73-924C-B5A9513D92A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7B394866-708F-4C73-924C-B5A9513D92A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7B394866-708F-4C73-924C-B5A9513D92A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7B394866-708F-4C73-924C-B5A9513D92A9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0081DD81-2F11-474E-9D0B-5777EE30D393}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0081DD81-2F11-474E-9D0B-5777EE30D393}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0081DD81-2F11-474E-9D0B-5777EE30D393}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0081DD81-2F11-474E-9D0B-5777EE30D393}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BFF01BEE-DF34-47CC-9C65-1282BAA60535}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BFF01BEE-DF34-47CC-9C65-1282BAA60535}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BFF01BEE-DF34-47CC-9C65-1282BAA60535}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BFF01BEE-DF34-47CC-9C65-1282BAA60535}.Release|Any CPU.Build.0 = Release|Any CPU
+		{44623B09-BA13-4A59-BF7D-3B851D8B1F81}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{44623B09-BA13-4A59-BF7D-3B851D8B1F81}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{44623B09-BA13-4A59-BF7D-3B851D8B1F81}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{44623B09-BA13-4A59-BF7D-3B851D8B1F81}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F5226D04-7E10-401D-8704-B54DB57AB13C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F5226D04-7E10-401D-8704-B54DB57AB13C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F5226D04-7E10-401D-8704-B54DB57AB13C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F5226D04-7E10-401D-8704-B54DB57AB13C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AA6B77C2-7D1D-4A22-A56C-E5A326AD97F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA6B77C2-7D1D-4A22-A56C-E5A326AD97F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA6B77C2-7D1D-4A22-A56C-E5A326AD97F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA6B77C2-7D1D-4A22-A56C-E5A326AD97F5}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
